@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -83,6 +84,43 @@ public class UserController {
         userService.updateHeader(user.getId(), headerUrl);
 
         return "redirect:/index";
+    }
+
+    // 更改密码
+    @RequestMapping(path = "/updatePassword", method = RequestMethod.POST)
+    public String updatePassword(String oldPassword, String newPassword, String confirmPassword, Model model,
+                                 @CookieValue("ticket") String ticket){
+        // 空值处理
+        if (oldPassword == null  ){
+            model.addAttribute("oldErrorMsg", "原密码不能为空！");
+            return "/site/setting";
+        }else if (newPassword == null){
+            model.addAttribute("newErrorMsg", "新密码不能为空！");
+            return "/site/setting";
+        }else if (confirmPassword == null){
+            model.addAttribute("confirmErrorMsg", "确认密码不能为空！");
+            return "/site/setting";
+        }
+
+        // 检查原密码是否正确
+        User user = hostHolder.getUser();
+        String password = CommunityUtil.md5(oldPassword + user.getSalt());
+        if (!password.equals(user.getPassword())){
+            model.addAttribute("oldErrorMsg", "原密码不正确！");
+            return "/site/setting";
+        }else if (!newPassword.equals(confirmPassword)){
+            model.addAttribute("newErrorMsg", "两次输入的密码不一致！");
+            model.addAttribute("confirmErrorMsg", "两次输入的密码不一致！");
+            return "/site/setting";
+        }else{
+            // 更新密码
+            password = CommunityUtil.md5(newPassword + user.getSalt());
+            userService.updatePassword(user.getId(), password);
+            // 退出登录
+            userService.logout(ticket);
+            return "redirect:/login";
+        }
+
     }
 
     @RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
