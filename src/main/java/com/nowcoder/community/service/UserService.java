@@ -12,14 +12,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -213,7 +212,7 @@ public class UserService implements CommunityConstant {
         return (User) redisTemplate.opsForValue().get(redisKey);
     }
 
-    // 2.取不到是初始化缓存数据
+    // 2.取不到时初始化缓存数据
     private User initCache(int userId){
         User user = userMapper.selectById(userId);
         String redisKey = RedisKeyUtil.getUserKey(userId);
@@ -221,10 +220,46 @@ public class UserService implements CommunityConstant {
         return user;
     }
 
-    // 3.数据变更是清楚缓存数据
+    // 3.数据变更时清楚缓存数据
     private void clearCache(int userId){
         String redisKey = RedisKeyUtil.getUserKey(userId);
         redisTemplate.delete(redisKey);
     }
 
+    public Collection<? extends GrantedAuthority> getAuthorities(int userId){
+        User user = this.findUserById(userId);
+
+        List<GrantedAuthority> list = new ArrayList<>();
+        System.out.println("type:" + user.getType());
+//        list.add(new GrantedAuthority() {
+//            @Override
+//            public String getAuthority() {
+//                switch (user.getType()){
+//                    case 1:
+//                        return AUTHORITY_ADMIN;
+//                    case 2:
+//                        return AUTHORITY_MODERATOR;
+//                    default:
+//                        return AUTHORITY_USER;
+//                }
+//                if (user.getType() ==1){
+//                    return AUTHORITY_ADMIN;
+//                }else if (user.getType() == 2){
+//                    return AUTHORITY_MODERATOR;
+//                }else {
+//                    return AUTHORITY_USER;
+//                }
+//            }
+//        });
+
+        if (user.getType() == 1){
+            list.add(new SimpleGrantedAuthority(AUTHORITY_ADMIN));
+        } else if (user.getType() ==2){
+            list.add(new SimpleGrantedAuthority(AUTHORITY_MODERATOR));
+        }else {
+            list.add(new SimpleGrantedAuthority(AUTHORITY_USER));
+        }
+
+        return list;
+    }
 }
