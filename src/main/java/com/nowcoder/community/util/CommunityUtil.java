@@ -20,6 +20,7 @@ public class CommunityUtil {
     // 只能加密，不能解密，且同一个字符串一定会加密为同一个结果
     // 故会在密码后，添加一个随机字符串(也叫salt)，可以提高密码的破译难度
     public static String md5(String key){
+        // 空值不做处理
         if (StringUtils.isBlank(key)){
             return null;
         }

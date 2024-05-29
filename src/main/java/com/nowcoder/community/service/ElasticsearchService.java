@@ -59,6 +59,7 @@ public class ElasticsearchService {
                 )
                 // 高亮
                 .withHighlightBuilder(new HighlightBuilder().preTags("<em>").postTags("</em>"))
+//                .withHighlightBuilder(new HighlightBuilder().preTags("<strong>").postTags("</strong>"))     // 加粗
                 .build();
         // 查询
         SearchHits<DiscussPost> search = elasticTemplate.search(searchQuery, DiscussPost.class);

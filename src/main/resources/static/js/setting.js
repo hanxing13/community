@@ -6,7 +6,9 @@ function upload() {
     $.ajax({
         url: "http://upload-z2.qiniup.com",
         method: "post",
+        // 不用把数据解析成json
         processData: false,
+        // 不设置文件类型，让浏览器自己设置
         contentType: false,
         data: new FormData($("#uploadForm")[0]),
         success: function (data) {
